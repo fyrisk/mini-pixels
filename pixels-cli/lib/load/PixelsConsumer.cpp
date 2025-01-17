@@ -60,7 +60,7 @@ void PixelsConsumer::run() {
 //    int pixelsStride = std::stoi(ConfigFactory::Instance().getProperty("pixel.stride"));
 //    int rowGroupSize = std::stoi(ConfigFactory::Instance().getProperty("row.group.size"));
 //    int64_t blockSize = std::stoll(ConfigFactory::Instance().getProperty("block.size"));
-    int pixelsStride = 2;
+    int pixelsStride = 128;
     int rowGroupSize = 100;
     int64_t blockSize = 1024;
 
