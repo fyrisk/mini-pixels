@@ -104,15 +104,7 @@ bool DecimalColumnWriter::decideNullsPadding(std::shared_ptr<PixelsWriterOption>
 
 void DecimalColumnWriter::newPixel()
 {
-    // write out current pixel vector
-    // if (runlengthEncoding)
-    // {
-    //     std::vector<byte> buffer(curPixelVectorIndex * sizeof(int));
-    //     int resLen;
-    //     encoder->encode(curPixelVector.data(), buffer.data(), curPixelVectorIndex, resLen);
-    //     outputStream->putBytes(buffer.data(), resLen);
-    // }
-    // else
+
     {
         std::shared_ptr<ByteBuffer> curVecPartitionBuffer;
         EncodingUtils encodingUtils;

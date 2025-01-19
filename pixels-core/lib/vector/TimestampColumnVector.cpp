@@ -121,10 +121,10 @@ void TimestampColumnVector::add(std::string &value)
     int year    = (value[0] - '0') * 1000 + (value[1] - '0') * 100 + (value[2] - '0') * 10 + (value[3] - '0');
     int month   = (value[5] - '0') * 10 + (value[6] - '0');
     int day     = (value[8] - '0') * 10 + (value[9] - '0');
-    
-    int hour    = (value[10] - '0') * 10 + (value[11] - '0');
-    int minute  = (value[13] - '0') * 10 + (value[14] - '0');
-    int second = (value[16] - '0') * 10 + (value[17] - '0');
+    //debug 忘記算上了空格
+    int hour    = (value[11] - '0') * 10 + (value[12] - '0');
+    int minute  = (value[14] - '0') * 10 + (value[15] - '0');
+    int second = (value[17] - '0') * 10 + (value[18] - '0');
 
     long v = (long)(date2j(year, month, day) - 2440588) * 24 * 60 * 60;
     v += hour * 60 * 60;

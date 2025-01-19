@@ -47,3 +47,4 @@ git clone 之后，需要执行 `make pull` 拉取所有的子模块，否则可
 8. 任务三实际是在说使用 duckdb 读取 *.pxl 文件来验证通过 pixles-cli 生成的 *.pxl 是否正确，可以视作测试环节
 9. 建议虚函数全部加上 override，这样编译器会帮你检查是否 override 正确
 10. 目前的 timestamp 的 precision 没用，duckdb读取的时候默认是 秒 * 1e6 对应的 long
+
