@@ -220,8 +220,11 @@ unique_ptr<LocalTableFunctionState> PixelsScanFunction::PixelsScanInitLocal(
 
 void PixelsScanFunction::TransformDuckdbType(const std::shared_ptr<TypeDescription>& type,
                                              vector<LogicalType> &return_types) {
+                                        
+    std::cout<<"into TransformDuckdbType"<<std::endl;
 	auto columnSchemas = type->getChildren();
 	for(auto columnType: columnSchemas) {
+        std::cout<<"type = "<<columnType->getCategory()<<std::endl;
 		switch (columnType->getCategory()) {
 			//        case TypeDescription::BOOLEAN:
 			//            break;
@@ -241,8 +244,9 @@ void PixelsScanFunction::TransformDuckdbType(const std::shared_ptr<TypeDescripti
 			case TypeDescription::DECIMAL:
 			    return_types.emplace_back(LogicalType::DECIMAL(columnType->getPrecision(), columnType->getScale()));
 			    break;
-			//        case TypeDescription::STRING:
-			//            break;
+			case TypeDescription::STRING:
+                return_types.emplace_back(LogicalType::VARCHAR);
+			    break;
 			case TypeDescription::DATE:
 			    return_types.emplace_back(LogicalType::DATE);
 			    break;

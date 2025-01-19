@@ -56,11 +56,10 @@ void PixelsConsumer::run() {
     if (regex == "\\s") {
         regex = " ";
     }
-
 //    int pixelsStride = std::stoi(ConfigFactory::Instance().getProperty("pixel.stride"));
 //    int rowGroupSize = std::stoi(ConfigFactory::Instance().getProperty("row.group.size"));
 //    int64_t blockSize = std::stoll(ConfigFactory::Instance().getProperty("block.size"));
-    int pixelsStride = 2;
+    int pixelsStride = 128;
     int rowGroupSize = 100;
     int64_t blockSize = 1024;
 
@@ -93,15 +92,21 @@ void PixelsConsumer::run() {
 
             while (std::getline(reader, line)) {
                 if (initPixelsFile) {
+                    std::cout << "Initializing pixels file..." << std::endl;
                     if (line.empty()) {
                         std::cout << "got empty line" << std::endl;
                         continue;
                     }
+                    std::cout << "initPixelsFile" << std::endl;
                     LocalFS targetStorage;
                     targetFileName = std::to_string(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())) + ".pxl";
                     targetFilePath = targetPath + targetFileName;
+                    std::cout << "Target file path: " << targetFilePath << std::endl;
                     pixelsWriter = std::make_shared<PixelsWriterImpl>(schema, pixelsStride, rowGroupSize, targetFilePath, blockSize,
-                                                                      true, encodingLevel, nullPadding,false, 1);
+                                                                    true, encodingLevel, nullPadding,false, 1);
+                    if (!pixelsWriter) {
+                        std::cerr << "Failed to create PixelsWriter." << std::endl;
+                    }
                 }
                 initPixelsFile = false;
 
@@ -113,14 +118,20 @@ void PixelsConsumer::run() {
                 for (; it != boost::sregex_token_iterator(); ++it) {
                     colsInLine.push_back(*it);
                 }
-                for(int i = 0; i < columnVectors.size(); ++i) {
-                    if (i > colsInLine.size() || colsInLine[i].empty() || colsInLine[i] == "\\N") {
+                std::cout << "Processing line: " << line << std::endl;
+                std::cout << "Columns in line: " << colsInLine.size() << ", Column vectors: " << columnVectors.size() << std::endl;
+                for (int i = 0; i < columnVectors.size(); ++i) {
+                    if (i >= colsInLine.size()) {
+                        std::cerr << "Error: Not enough columns in line for column " << i << std::endl;
+                    }
+                    if (i >= colsInLine.size() || colsInLine[i].empty() || colsInLine[i] == "\\N") {
                         columnVectors[i]->addNull();
                     } else {
                         columnVectors[i]->add(colsInLine[i]);
                     }
                 }
 
+                std::cout << "after add Columns in line: " << colsInLine.size() << ", Column vectors: " << columnVectors.size() << std::endl;
                 if (rowBatch->rowCount == rowBatch->getMaxSize()) {
                     std::cout << "writing row group to file: " << targetFilePath << " rowCount:"<<rowBatch->rowCount<<std::endl;
                     pixelsWriter->addRowBatch(rowBatch);

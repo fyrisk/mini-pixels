@@ -115,15 +115,15 @@ void PixelsWriterImpl::close(){
         throw;
     }
 }
-
+    pixels::proto::RowGroupInformation curRowGroupInfo;
+    pixels::proto::RowGroupIndex curRowGroupIndex;
+    pixels::proto::RowGroupEncoding curRowGroupEncoding;
 void PixelsWriterImpl::writeRowGroup() {
     // TODO
     std::cout<<"Try to write rowGroup"<<std::endl;
     int rowGroupDataLength = 0;
 //    pixels::proto::RowGroupStatistic curRowGroupStatistic;
-    pixels::proto::RowGroupInformation curRowGroupInfo;
-    pixels::proto::RowGroupIndex curRowGroupIndex;
-    pixels::proto::RowGroupEncoding curRowGroupEncoding;
+
     // reset each column writer and get current row group content size in bytes
     for(auto writer:columnWriters){
         // flush writes the isNull bit map into the internal output stream.

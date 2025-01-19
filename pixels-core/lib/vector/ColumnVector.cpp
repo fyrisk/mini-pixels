@@ -90,6 +90,7 @@ void ColumnVector::ensureSize(uint64_t size, bool preserveData) {
 }
 
 void ColumnVector::add(std::string &value) {
+    std::cout<<"add string is not supported"<<std::endl;
     throw new std::runtime_error("Adding string is not supported");
 }
 

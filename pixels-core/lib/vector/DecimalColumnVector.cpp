@@ -27,6 +27,8 @@ DecimalColumnVector::DecimalColumnVector(uint64_t len, int precision, int scale,
 	this->vector = nullptr;
     this->precision = precision;
     this->scale = scale;
+    posix_memalign(reinterpret_cast<void **>(&this->vector), 32,
+                    len * sizeof(int64_t));
     memoryUsage += (uint64_t) sizeof(uint64_t) * len;
 }
 
@@ -65,4 +67,43 @@ int DecimalColumnVector::getPrecision() {
 
 int DecimalColumnVector::getScale() {
 	return scale;
+}
+
+void DecimalColumnVector::ensureSize(uint64_t size, bool preserveData)
+{
+    ColumnVector::ensureSize(size, preserveData);
+	if (length < size)
+	{
+		long *oldVector = vector;
+		posix_memalign(reinterpret_cast<void **>(&vector), 32,
+						size * sizeof(int64_t));
+		if (preserveData) {
+			std::copy(oldVector, oldVector + length, vector);
+		}
+		delete[] oldVector;
+		memoryUsage += (int) sizeof(int) * (size - length);
+		resize(size);
+	}
+}
+
+void DecimalColumnVector::add(std::string &value)
+{
+	if (writeIndex >= length)
+	{
+		ensureSize(writeIndex * 2, true);
+	}
+	int index = writeIndex ++;
+
+    std::string str = value;
+    size_t pos = str.find('.');
+    if (pos != std::string::npos) 
+    {
+        str.erase(pos, 1);
+    }
+
+    long v = std::stol(str);
+    vector[index] = v;
+    isNull[index] = false;
+
+    // std::cout << v << std::endl;
 }

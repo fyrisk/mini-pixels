@@ -24,6 +24,7 @@ std::vector<std::shared_ptr<ByteBuffer>> SortMergeScheduler::executeBatch(std::s
 
 std::vector<std::shared_ptr<ByteBuffer>> SortMergeScheduler::executeBatch(std::shared_ptr<PhysicalReader> reader, RequestBatch batch,
                                                       std::vector<std::shared_ptr<ByteBuffer>> reuseBuffers, long queryId) {
+    std::cout<<"SortMergeScheduler::executeBatch"<<std::endl;
     if(batch.getSize() < 0) {
         return std::vector<std::shared_ptr<ByteBuffer>>{};
     }

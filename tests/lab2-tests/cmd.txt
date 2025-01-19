@@ -1,0 +1,38 @@
+# 以下默认在mini-pixels目录当中
+
+export PIXELS_HOME=$PWD # 设置成mini-pixels目录
+export PIXELS_SRC=$PWD  # 设置成mini-pixels目录
+
+make -j8 # 编译
+
+./build/release/extension/pixels/pixels-cli/pixels-cli # 运行pixels-cli
+
+# 下面这几行当中的mini-pixels路径改成你的机器上的路径，pixels-cli似乎不能用相对路径
+
+LOAD -o /root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/int-in -t /root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/int-out -s struct<a:int> -n 128 -r \|
+exit
+LOAD -o /root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/date-in -t /root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/date-out -s struct<a:date> -n 128 -r \|
+exit
+LOAD -o /root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/decimal-in -t /root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/decimal-out -s struct<a:decimal(10,2)> -n 128 -r \|
+exit
+LOAD -o /root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/timestamp-in -t /root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/timestamp-out -s struct<a:timestamp> -n 128 -r \|
+exit
+LOAD -o /root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/mix-in -t /root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/mix-out -s struct<a:int,b:date,c:decimal(10,2),d:timestamp> -n 128 -r \|
+exit
+
+# 如果上面这些命令都成功执行，就可以一个一个用duckdb读结果了
+
+./build/release/duckdb # 运行duckdb
+
+# 例如：在duckdb当中
+select * from '/root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/mix-out/1737107696.pxl';
+select * from '/root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/int-out/1737190550.pxl';
+# 清理所有.pxl文件
+rm /root/workspace/rucbase/lab2/mini-pixels/tests/lab2-tests/*-out/*
+
+# 以下是我遇到过的各种报错...
+double free or corruption (!prev)
+malloc(): unaligned tcache chunk detected
+free(): invalid next size (fast)
+corrupted size vs. prev_size
+Segmentation fault (core dumped)

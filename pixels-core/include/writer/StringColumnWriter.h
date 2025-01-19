@@ -29,8 +29,11 @@
 #include "utils/DynamicIntArray.h"
 #include "utils/EncodingUtils.h"
 #include "encoding/RunLenIntEncoder.h"
-
+#include <memory>
+#include <vector>
+#include <cstdint>
 class StringColumnWriter : public ColumnWriter {
+public:
   StringColumnWriter(std::shared_ptr<TypeDescription> type,std::shared_ptr<PixelsWriterOption> writerOption);
 
   // vector should be converted to BinaryColumnVector
@@ -38,26 +41,26 @@ class StringColumnWriter : public ColumnWriter {
   void close() override;
   void newPixels() ;
 
-  bool decideNullsPadding(std::shared_ptr<PixelsWriterOption> writerOption) override;
+  bool decideNullsPadding(std::shared_ptr<PixelsWriterOption> writerOption) override {};
 
-  void writeCurPartWithoutDict(std::shared_ptr<PixelsWriterOption> writerOption,uint8_t ** values,
+  void writeCurPartWithoutDict(std::shared_ptr<BinaryColumnVector> writerOption,duckdb::string_t * values,
                                int* vLens,int* vOffsets,int curPartLength,int curPartOffset);
 
   void flush() override;
 
-  pixels::proto::ColumnEncoding getColumnChunkEncoding();
-
   void flushStarts();
 
 
-  private:
+
     std::vector<long> curPixelVector;
     bool runlengthEncoding;
     bool dictionaryEncoding;
     std::shared_ptr<DynamicIntArray> startsArray;
-    std::shared_ptr<EncodingUtils>  encodingUtils;
-  std::unique_ptr<RunLenIntEncoder> encoder;
-  int  startOffset=0;
+    std::shared_ptr<EncodingUtils> encodingUtils;
+    std::unique_ptr<RunLenIntEncoder> encoder;
+    int startOffset = 0;
+    int curPixelIsNullIndex = 0;
+    bool hasNull = false;
 
 
 };

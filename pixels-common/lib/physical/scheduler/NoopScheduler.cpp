@@ -23,6 +23,7 @@ std::vector<std::shared_ptr<ByteBuffer>> NoopScheduler::executeBatch(std::shared
 
 std::vector<std::shared_ptr<ByteBuffer>> NoopScheduler::executeBatch(std::shared_ptr<PhysicalReader> reader, RequestBatch batch,
                                       std::vector<std::shared_ptr<ByteBuffer>> reuseBuffers, long queryId) {
+	std::cout<<"noop"<<std::endl;
 	auto requests = batch.getRequests();
 	std::vector<std::shared_ptr<ByteBuffer>> results;
 	results.resize(batch.getSize());
@@ -47,6 +48,10 @@ std::vector<std::shared_ptr<ByteBuffer>> NoopScheduler::executeBatch(std::shared
 			}
 
 		}
+	}
+	for(auto it:results)
+	{
+		it->printHex();
 	}
 	return results;
 

@@ -23,6 +23,11 @@ public:
     ~TimestampColumnVector();
     void print(int rowCount) override;
     void close() override;
+
+    void ensureSize(uint64_t size, bool preserveData) override;
+    inline int date2j(int y, int m, int d);
+    void add(std::string &value) override;
+
 private:
     bool isLong;
 };
