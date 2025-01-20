@@ -29,6 +29,7 @@ std::vector<std::shared_ptr<ByteBuffer>> NoopScheduler::executeBatch(std::shared
 	results.resize(batch.getSize());
 	if(ConfigFactory::Instance().boolCheckProperty("localfs.enable.async.io") && reuseBuffers.size() > 0) {
 		// async read
+		std::cout<<"reuse"<<std::endl;
 		auto localReader = std::static_pointer_cast<PhysicalLocalReader>(reader);
 		for(int i = 0; i < batch.getSize(); i++) {
 			Request request = requests[i];
@@ -44,6 +45,7 @@ std::vector<std::shared_ptr<ByteBuffer>> NoopScheduler::executeBatch(std::shared
 			if(reuseBuffers.size() > 0) {
 				results.at(i) = reader->readFully(request.length, reuseBuffers.at(i));
 			} else {
+				std::cout<<"no reuse"<<std::endl;
 				results.at(i) = reader->readFully(request.length);
 			}
 

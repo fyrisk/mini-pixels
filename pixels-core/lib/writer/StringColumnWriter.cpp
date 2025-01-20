@@ -40,10 +40,12 @@ void StringColumnWriter::flush() {
 
 void StringColumnWriter::flushStarts() {
     std::cout << "Entering StringColumnWriter::flushStarts" << std::endl;
-    int startsFieldOffset = outputStream->size();
+    int startsFieldOffset=outputStream->getWritePos();
     startsArray->add(startOffset);
     std::cout << "StartsFieldOffset: " << startsFieldOffset << ", startsArray size: " << startsArray->size() << std::endl;
 
+    if (byteOrder == ByteOrder::PIXELS_LITTLE_ENDIAN) std::cout<<"LITTLE_ENDIAN"<<std::endl;
+    else std::cout<<"BIG_ENDIAN"<<std::endl;
     if (byteOrder == ByteOrder::PIXELS_LITTLE_ENDIAN) {
         for (int i = 0; i < startsArray->size(); i++) {
             encodingUtils->writeIntLE(outputStream, startsArray->get(i));
@@ -87,7 +89,7 @@ int StringColumnWriter::write(std::shared_ptr<ColumnVector> vector, int length) 
     writeCurPartWithoutDict(columnVector, values, vLens, vOffsets, curPartLength, curPartOffset);
 
     std::cout << "Exiting StringColumnWriter::write, outputStream size: " << outputStream->size() << std::endl;
-    return outputStream->size();
+    return outputStream->getWritePos();
 }
 
 void StringColumnWriter::writeCurPartWithoutDict(std::shared_ptr<BinaryColumnVector> columnVector, duckdb::string_t* values,
@@ -111,6 +113,7 @@ void StringColumnWriter::writeCurPartWithoutDict(std::shared_ptr<BinaryColumnVec
             std::cout << "Writing string data, length: " << len << ", offset: " << offset << std::endl;
             outputStream->putBytes(reinterpret_cast<uint8_t*>(const_cast<char*>(data)), len);
             
+            //startsArray->add(startOffset);
             startsArray->add(startOffset);
             startOffset += vLens[curPartOffset + i];
         }

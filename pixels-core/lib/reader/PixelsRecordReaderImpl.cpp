@@ -11,6 +11,9 @@ PixelsRecordReaderImpl::PixelsRecordReaderImpl(std::shared_ptr<PhysicalReader> r
                                                const pixels::proto::Footer& pixelsFooter,
                                                const PixelsReaderOption& opt,
                                                std::shared_ptr<PixelsFooterCache> pixelsFooterCache) {
+
+        std::cout << "Entering function: PixelsRecordReaderImpl::PixelsRecordReaderImpl" << std::endl;
+
     physicalReader = reader;
     footer = pixelsFooter;
     postScript = pixelsPostScript;
@@ -44,9 +47,14 @@ PixelsRecordReaderImpl::PixelsRecordReaderImpl(std::shared_ptr<PhysicalReader> r
     resultRowBatch = nullptr;
     // ::DirectUringRandomAccessFile::Initialize();
     checkBeforeRead();
+    std::cout << "Exiting function: PixelsRecordReaderImpl::PixelsRecordReaderImpl" << std::endl;
+
 }
 
 void PixelsRecordReaderImpl::checkBeforeRead() {
+std::cout << "Entering function: PixelsRecordReaderImpl::checkBeforeRead" << std::endl;
+
+    
     // get file schema
     auto fileColTypesFooterTypes = footer.types();
     auto fileColTypes = std::vector<std::shared_ptr<pixels::proto::Type>>{};
@@ -111,11 +119,15 @@ void PixelsRecordReaderImpl::checkBeforeRead() {
         includedColumnTypes.emplace_back(fileColTypes.at(resultColumn));
     }
     resultSchema = TypeDescription::createSchema(includedColumnTypes);
+    std::cout << "Exiting function: PixelsRecordReaderImpl::checkBeforeRead" << std::endl;
+
 
 }
 
 
 void PixelsRecordReaderImpl::UpdateRowGroupInfo() {
+    std::cout << "Entering function: PixelsRecordReaderImpl::UpdateRowGroupInfo" << std::endl;
+ 
 	// if not end of file, update row count
 	curRGRowCount = (int) footer.rowgroupinfos(targetRGs.at(curRGIdx)).numberofrows();
 
@@ -141,6 +153,8 @@ void PixelsRecordReaderImpl::UpdateRowGroupInfo() {
 	}
 	// This flag makes sure that each row group invokes read()
 	everRead = false;
+    std::cout << "Exiting function: PixelsRecordReaderImpl::UpdateRowGroupInfo" << std::endl;
+
 }
 
 
@@ -151,6 +165,8 @@ void PixelsRecordReaderImpl::UpdateRowGroupInfo() {
 // VectorizedRowBatch with some cols. Each column has 10000 elements. The columns
 // read value from chunkBuffer.
 std::shared_ptr<VectorizedRowBatch> PixelsRecordReaderImpl::readBatch(bool reuse) {
+    std::cout << "Entering function: PixelsRecordReaderImpl::readBatch" << std::endl;
+ 
     if(endOfFile) {
 		endOfFile = true;
 		return createEmptyEOFRowBatch(0);
@@ -186,6 +202,7 @@ std::shared_ptr<VectorizedRowBatch> PixelsRecordReaderImpl::readBatch(bool reuse
       asyncReadComplete(has_async_task_num_);
     }
     if(filter != nullptr) {
+        std::cout<<"filter != nullptr and readers read"<<std::endl;
         for (auto &filterCol : filter->filters) {
             if(filterMask->isNone()) {
                 break;
@@ -205,22 +222,19 @@ std::shared_ptr<VectorizedRowBatch> PixelsRecordReaderImpl::readBatch(bool reuse
 
     // read vectors
     for(int i = 0; i < resultColumns.size(); i++) {
-        // TODO: Refer to Issue #564. Disable data skipping
-        //if(filterMask != nullptr) {
-        //    if(filterMask->isNone()) {
-        //        break;
-        //    }
-        //}
-        // Skip the columns that calculate the filter mask, since they are already processed
+
         int index = curChunkBufferIndex.at(i);
         if(std::find(filterColumnIndex.begin(), filterColumnIndex.end(), index) != filterColumnIndex.end()) {
             continue;
         }
         auto & encoding = curEncoding.at(i);
         auto & chunkIndex = curChunkIndex.at(i);
+        std::cout<<"read vector and reader read"<<std::endl;
         readers.at(i)->read(chunkBuffers.at(index), *encoding, curRowInRG, curBatchSize,
                             postScript.pixelstride(), resultRowBatch->rowCount,
                             columnVectors.at(i), *chunkIndex, filterMask);
+
+                            
     }
 
     // update current row index in the row group
@@ -238,11 +252,15 @@ std::shared_ptr<VectorizedRowBatch> PixelsRecordReaderImpl::readBatch(bool reuse
         }
         curRowInRG = 0;
     }
+    std::cout << "Exiting function: PixelsRecordReaderImpl::readBatch" << std::endl;
+
 	return resultRowBatch;
 }
 
 
 void PixelsRecordReaderImpl::prepareRead() {
+    std::cout << "Entering function: PixelsRecordReaderImpl::prepareRead" << std::endl;
+    
 	everPrepareRead = true;
     std::vector<bool> includedRGs;
     includedRGs.resize(RGLen);
@@ -323,9 +341,13 @@ void PixelsRecordReaderImpl::prepareRead() {
 	curChunkBufferIndex.resize(resultColumns.size());
 	curChunkIndex.resize(resultColumns.size());
 	UpdateRowGroupInfo();
+    std::cout << "Exiting function: PixelsRecordReaderImpl::prepareRead" << std::endl;
+
 }
 
 void PixelsRecordReaderImpl::asyncReadComplete(int requestSize) {
+    std::cout << "Entering function: PixelsRecordReaderImpl::asyncReadComplete" << std::endl;
+    
     if(ConfigFactory::Instance().boolCheckProperty("localfs.enable.async.io")
       && has_async_task_num_ >= requestSize) {
         if(ConfigFactory::Instance().getProperty("localfs.async.lib") == "iouring") {
@@ -336,6 +358,7 @@ void PixelsRecordReaderImpl::asyncReadComplete(int requestSize) {
             throw InvalidArgumentException("PhysicalLocalReader::readAsync: We don't support aio for our async read yet.");
         }
     }
+    std::cout << "Exiting function: PixelsRecordReaderImpl::asyncReadComplete" << std::endl;
 
 }
 
@@ -345,6 +368,8 @@ std::shared_ptr<PixelsBitMask> PixelsRecordReaderImpl::getFilterMask() {
 }
 
 bool PixelsRecordReaderImpl::read() {
+    std::cout << "Entering function: PixelsRecordReaderImpl::read" << std::endl;
+ 
 	if(!everPrepareRead) {
 		prepareRead();
 	}
@@ -393,9 +418,18 @@ bool PixelsRecordReaderImpl::read() {
             auto colId = colIds.at(i);
 			originalByteBuffers.emplace_back(::BufferPool::GetBuffer(colId));
 		}
-
+        std::cout<<"originalByteBuffers"<<std::endl;
+        for(auto it:originalByteBuffers)
+	    {
+		    //it->printHex();
+	    }   
 		auto byteBuffers = scheduler->executeBatch(physicalReader, requestBatch, originalByteBuffers, queryId);
 
+        std::cout<<"ByteBuffers"<<std::endl;
+        for(auto it:byteBuffers)
+	    {
+		    it->printHex();
+	    }  
       if(ConfigFactory::Instance().boolCheckProperty("localfs.enable.async.io") && originalByteBuffers.size() > 0) {
         has_async_task_num_ += diskChunks.size();
       }
@@ -407,7 +441,13 @@ bool PixelsRecordReaderImpl::read() {
                 chunkBuffers.at(colId) = bb;
             }
         }
+        std::cout<<"chunkBuffers"<<std::endl;
+        for(auto it:chunkBuffers)
+	    {
+		    it->printHex();
+	    }  
     }
+    std::cout << "Exiting function: PixelsRecordReaderImpl::read" << std::endl;
     return true;
 
 }

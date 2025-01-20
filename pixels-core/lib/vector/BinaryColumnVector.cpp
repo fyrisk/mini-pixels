@@ -59,6 +59,9 @@ void BinaryColumnVector::setRef(int elementNum, uint8_t * const &sourceBuf, int 
     this->lens[elementNum] = length;
     this->isNull[elementNum] = (sourceBuf == nullptr);
     std::cout << "setRef completed for elementNum: " << elementNum << ", length: " << length << std::endl;
+    // 单独使用sourceBuf, startPos, length打印字符内容
+    std::cout << "Source string: " << std::string((vector[elementNum].GetData()), length) << std::endl;
+
 }
 void * BinaryColumnVector::current() {
     if(vector == nullptr) {

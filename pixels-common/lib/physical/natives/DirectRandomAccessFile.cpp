@@ -61,6 +61,8 @@ std::shared_ptr<ByteBuffer> DirectRandomAccessFile::readFully(int len) {
 		auto buffer = directIoLib->read(fd, offset, directBuffer, len);
 		seek(offset + len);
 		largeBuffers.emplace_back(directBuffer);
+		std::cout<<"readFully enableDirect"<<std::endl;
+		buffer->printHex();
 		return buffer;
 	} else {
 		auto buffer = allocator->allocate(len);
@@ -69,6 +71,7 @@ std::shared_ptr<ByteBuffer> DirectRandomAccessFile::readFully(int len) {
 		}
 		seek(offset + len);
 		largeBuffers.emplace_back(buffer);
+		std::cout<<"else"<<std::endl;
 		return buffer;
 	}
 

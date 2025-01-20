@@ -28,6 +28,7 @@ void StringColumnReader::read(std::shared_ptr<ByteBuffer> input, pixels::proto::
                               int size, int pixelStride, int vectorIndex, std::shared_ptr<ColumnVector> vector,
                               pixels::proto::ColumnChunkIndex & chunkIndex, std::shared_ptr<PixelsBitMask> filterMask) {
     // TODO: support dictionary
+    std::cout << "enter function: StringColumnReader::read with vector index ==" <<vectorIndex<< std::endl;
     std::shared_ptr<BinaryColumnVector> columnVector =
             std::static_pointer_cast<BinaryColumnVector>(vector);
 
@@ -37,7 +38,7 @@ void StringColumnReader::read(std::shared_ptr<ByteBuffer> input, pixels::proto::
         isNullOffset = chunkIndex.isnulloffset();
         readContent(input, input->bytesRemaining(), encoding);
     }
-
+    int origin = bufferOffset;
     int pixelId = elementIndex / pixelStride;
     bool hasNull = chunkIndex.pixelstatistics(pixelId).statistic().hasnull();
     setValid(input, pixelStride, vector, pixelId, hasNull);
@@ -102,11 +103,23 @@ void StringColumnReader::read(std::shared_ptr<ByteBuffer> input, pixels::proto::
             elementIndex++;
         }
     }
+    std::cout<<"strings of columnVector in StringColumnReader::read"<<std::endl;
+    for(int i=0;i<size;i++)
+    {
+        std::cout<<"i="<<i<<std::endl;
+        std::cout<<columnVector->vector[i].GetString()<<std::endl;
+    }
+
+    input->setReadPos(input->getReadPos() + (bufferOffset-origin));
+    // TODO: support dictionary
+    std::cout << "exit function: StringColumnReader::read" << std::endl;
 }
 
 void StringColumnReader::readContent(std::shared_ptr<ByteBuffer> input,
                                      uint32_t inputLength,
                                      pixels::proto::ColumnEncoding & encoding) {
+                    
+    std::cout << "enter function: StringColumnReader::readContent" << std::endl;
     if(encoding.kind() == pixels::proto::ColumnEncoding_Kind_DICTIONARY) {
         input->markReaderIndex();
         input->skipBytes(inputLength - 2 * sizeof(int));
@@ -162,8 +175,16 @@ void StringColumnReader::readContent(std::shared_ptr<ByteBuffer> input,
         contentBuf = std::make_shared<ByteBuffer>(*input, 0, startsOffset);
         startsBuf = std::make_shared<ByteBuffer>(
                 *input, startsOffset, inputLength - sizeof(int) - startsOffset);
+
+        std::cout<<"contentBuf"<<std::endl;
+		contentBuf->printHex();
+	    
+        std::cout<<"startsBuf"<<std::endl;
+		startsBuf->printHex();
+        
         nextStart = startsBuf->getInt(); // read out the first start offset, which is 0
     }
+    std::cout << "exit function: StringColumnReader::readContent" << std::endl;
 }
 StringColumnReader::~StringColumnReader() {
 	if(dictStarts != nullptr) {
